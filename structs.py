@@ -61,7 +61,7 @@ class Partial:
         out.extend(len(self.part_refs).to_bytes(4, 'little')) # using actual length, not part_count!
         for ref in self.part_refs:
             out.extend(ref.to_bytes())
-        for ref in self.part_refs:
+        for ref in reversed(self.part_refs):
             out.extend(ref.part.to_bytes())
 
         return out
@@ -78,16 +78,17 @@ class PartialRef:
         return out
 
 @dataclass
-class HeaderInfo:
+class EslbData:
     partial_count: int
     partial_refs: List[PartialRef]
 
     def to_bytes(self) -> bytearray:
         out = bytearray()
+        out.extend(HEADER_MAGIC)
         out.extend(len(self.partial_refs).to_bytes(4, 'little')) # using actual refs length, not partial_count!
         for ref in self.partial_refs:
             out.extend(ref.to_bytes())
-        for ref in self.partial_refs:
+        for ref in reversed(self.partial_refs):
             out.extend(ref.partial.to_bytes())
 
         return out

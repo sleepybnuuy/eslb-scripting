@@ -50,6 +50,7 @@ ESLBHeader header @ 0x00000000;
 '''
 
 import mmap
+import os
 from structs import *
 
 def deserialize_eslb(path: str):
@@ -82,10 +83,10 @@ def deserialize_eslb(path: str):
 
             if len(complete_refs) != partial_count:
                 print(f'error: parsed {len(complete_refs)} partials, expected {partial_count}')
-            header = HeaderInfo(partial_count, complete_refs)
+            data = EslbData(partial_count, complete_refs)
             m.close()
         f.close()
-    return header
+    return data
 
 
 def partial_from_offset(offset, m):
@@ -142,9 +143,20 @@ def part_from_offset(offset, m):
 
     return Part(checksum, part_id, part_type)
 
+def serialize_eslb(data: EslbData, path: str):
+    output = data.to_bytes()
+    with open(path,'wb') as f:
+        f.truncate(len(output))
+        f.write(output)
+        f.flush()
+        f.close()
+    return
+
 def main():
-    header = deserialize_eslb('data/extra_weapon.eslb')
-    print(header)
-    print(header.to_bytes())
+    data = deserialize_eslb('data/extra_weapon.eslb')
+    print(data)
+    print(data.to_bytes())
+    serialize_eslb(data, 'data/COMPILED_extra_weapon.eslb')
+    print('done')
 
 main()
