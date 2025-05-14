@@ -56,12 +56,13 @@ def deserialize_eslb(path: str):
     with open(path,'r') as f:
         with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as m:
             header = m.read(28)
-            num_partials = int.from_bytes(m.read(4), byteorder='little')
+            partial_count = int.from_bytes(m.read(4), byteorder='little')
 
             print(f'header: {header}')
-            print(f'partial count: {num_partials}')
+            print(f'partial count: {partial_count}')
 
-            for ref in range(num_partials):
+            complete_refs = []
+            for ref in range(partial_count):
                 offset = int.from_bytes(m.read(4), byteorder='little')
                 # savepoint cursor position in header blob
                 current_pos = m.tell()
@@ -69,45 +70,81 @@ def deserialize_eslb(path: str):
                 # try to parse a partial thats [offset] bytes away
                 try:
                     partial = partial_from_offset(offset, m)
+                    if not partial:
+                        raise
+                    complete_refs.append(PartialRef(offset, partial))
                 except:
-                    print('exc')
+                    print('except')
+                    continue
                 finally:
                     # return to header to parse next ref
                     m.seek(current_pos)
+
+            if len(complete_refs) != partial_count:
+                print(f'error: parsed {len(complete_refs)} partials, expected {partial_count}')
+            header = HeaderInfo(partial_count, complete_refs)
+            m.close()
+        f.close()
+    return header
 
 
 def partial_from_offset(offset, m):
     m.seek(m.tell() + offset - 4)
     checksum = m.read(2)
-    m.read(2)
+    m.read(2) # FF FF
+
     m.read(4) # 00 03 00 00
     weapon_id = int.from_bytes(m.read(4), byteorder='little')
     m.read(4) # 04 00 00 00
-    num_parts = int.from_bytes(m.read(4), byteorder='little')
-    print(f'w{weapon_id:0>4} - {num_parts} parts')
+    part_count = int.from_bytes(m.read(4), byteorder='little')
+    # print(f'w{weapon_id:0>4} - {part_count} parts')
 
-    for ref in range(num_parts):
+    complete_refs = []
+    for ref in range(part_count):
+        part = None
         part_offset = int.from_bytes(m.read(4), byteorder='little')
         current_pos = m.tell()
 
         try:
             part = part_from_offset(part_offset, m)
+            if not part:
+                raise
         except:
             print('exc')
+            continue
         finally:
             m.seek(current_pos)
+
+        complete_refs.append(PartRef(offset, part))
+
+    if len(complete_refs) != part_count:
+        print(f'error: parsed {len(complete_refs)} parts, expected {part_count}')
+    return Partial(checksum, weapon_id, part_count, complete_refs)
 
 def part_from_offset(offset, m):
     m.seek(m.tell() + offset - 4)
     checksum = m.read(2)
-    m.read(2)
+    m.read(2) # FF FF
+
     definition = m.read(4)
+    if not part_has_valid_definition(definition):
+        print(f'unknown definition on part: {definition}')
+        return
+
     part_id = int.from_bytes(m.read(4), byteorder='little')
     m.read(8) # 04 00 00 00 01 00 00 00
+
     footer = m.read(4)
-    print(f'part p{part_id:0>4}')
+    part_type = PART_FOOTER_MAP.get(footer)
+    if not part_type:
+        print(f'key error for unknown footer: {footer}')
+        return
+
+    return Part(checksum, part_id, part_type)
 
 def main():
-    deserialize_eslb('data/extra_weapon.eslb')
+    header = deserialize_eslb('data/extra_weapon.eslb')
+    print(header)
+    print(header.to_bytes())
 
 main()
