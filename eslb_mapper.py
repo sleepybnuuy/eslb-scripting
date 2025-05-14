@@ -1,54 +1,3 @@
-'''
-enum PartType : u32 {
-    a = 0x70000000,
-    b = 0x70000A00
-};
-
-struct Part {
-    u16 checksum;
-    padding[2]; // prepended FF FF
-    padding[4]; // part definition 00 00 00 01 THIS CAN BE MISSING
-    u32 part_id; // p####
-    padding[8]; // footer 04 00 00 00 01 00 00 00
-    be PartType part_type; // 70 00 00 00 if standard; 70 00 0A 00 if unk
-};
-
-struct WeaponPartial {
-    u16 checksum;
-    padding[2]; // prepended FF FF
-    padding[4]; // prepended 00 00 03 00
-    u32 weapon_id; // w####
-    padding[4]; // 04 00 00 00 unk magic
-    u32 num_parts;
-    /*
-    each longword is the distance from start of longword to the corresponding part,
-    these are in reverse order
-    ex: (last will be 04 00 00 00 as its 8 bytes away from start of Part)
-    */
-    u32 part_references[num_parts];
-    Part parts[num_parts];
-};
-
-struct ESLBHeader {
-    padding[4]; // 14 00 00 00 ; # bytes after ESLB string til num partials
-    padding[4]; // 45 53 4C 42 ; ESLB
-    padding[20]; // unknown magic
-    u32 num_partials; // total WeaponPartial definitions in file
-    /*
-    each longword is the distance from start of longword to the corresponding partial,
-    these are in reverse order
-    ex: (last will be 04 00 00 00 as its 8 bytes away from start of Partial)
-    */
-    u32 partial_references[num_partials];
-};
-
-ESLBHeader header @ 0x00000000;
-// WeaponPartial partials[header.num_partials] @ 0x00000130;
-
-// 38 00 00 00 20 00 00 00 04 00 00 00 8A F4 FF FF 00 00 00 01 32 00 00 00 04 00 00 00 01 00 00 00 70 00 00 00 A0 F7 FF FF 27 00 00 00 04 00 00 00 01 00 00 00 70 00 00 00
-// Parts can be shortened at times missing the 0 0 0 1 definition head
-'''
-
 import mmap
 import os
 from structs import *
@@ -116,7 +65,7 @@ def partial_from_offset(offset, m):
         finally:
             m.seek(current_pos)
 
-        complete_refs.append(PartRef(offset, part))
+        complete_refs.append(PartRef(part_offset, part))
 
     if len(complete_refs) != part_count:
         print(f'error: parsed {len(complete_refs)} parts, expected {part_count}')
