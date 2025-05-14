@@ -16,7 +16,7 @@ after the header, data is chunked into `Partial` blocks for each weapon in LIFO 
 - list of reference longwords per `part_count` (`PartRef`) in FILO order
   - as above, offset points to the checksum of the related Part
 
-for each part of a partial,
+for each part of a partial (listed in LIFO order),
 - checksum is followed by start flag (`00 00 00 01`)
 - XIV `part_id` longword
 - ending with one of two(?) footer patterns:
