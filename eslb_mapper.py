@@ -1,6 +1,6 @@
 import mmap
-import os
 from structs import *
+from serialize import *
 
 def deserialize_eslb(path: str):
     with open(path,'r') as f:
@@ -92,7 +92,7 @@ def part_from_offset(offset, m):
 
     return Part(checksum, part_id, part_type)
 
-def serialize_eslb(data: EslbData, path: str):
+def printout_eslb(data: EslbData, path: str):
     output = data.to_bytes()
     with open(path,'wb') as f:
         f.truncate(len(output))
@@ -103,9 +103,12 @@ def serialize_eslb(data: EslbData, path: str):
 
 def main():
     data = deserialize_eslb('data/extra_weapon.eslb')
-    print(data)
-    print(data.to_bytes())
-    serialize_eslb(data, 'data/COMPILED_extra_weapon.eslb')
+    # print(data)
+    inputs = data.to_inputs()
+    print(inputs)
+    compiled_eslb = serialize_eslb(inputs)
+    # print(compiled_eslb)
+    printout_eslb(compiled_eslb, 'data/COMPILED_extra_weapon.eslb')
     print('done')
 
 main()

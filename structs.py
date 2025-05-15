@@ -93,5 +93,8 @@ class EslbData:
 
         return out
 
+    def to_inputs(self) -> List[tuple[int, List[int]]]:
+        return [(partial_ref.partial.weapon_id, [part_ref.part.part_id for part_ref in partial_ref.partial.part_refs]) for partial_ref in self.partial_refs]
+
 def part_has_valid_definition(definition):
     return definition == PART_DEFINITION
