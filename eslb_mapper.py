@@ -103,12 +103,11 @@ def printout_eslb(data: EslbData, path: str):
 
 def main():
     data = deserialize_eslb('data/extra_weapon.eslb')
-    # print(data)
     inputs = data.to_inputs()
-    print(inputs)
     compiled_eslb = serialize_eslb(inputs)
-    # print(compiled_eslb)
     printout_eslb(compiled_eslb, 'data/COMPILED_extra_weapon.eslb')
     print('done')
 
 main()
+
+# chara/xls/extraskl/extra_weapon.eslb

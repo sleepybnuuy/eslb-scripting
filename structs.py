@@ -18,14 +18,13 @@ PART_FOOTER_MAP = {
 
 @dataclass
 class Part:
-    checksum: bytes
+    checksum: bytearray
     part_id: int
     part_type: PartType
 
     def to_bytes(self) -> bytearray:
         out = bytearray()
-        out.extend(self.checksum) # AB CD
-        out.extend(ff_padding(2)) # FF FF
+        out.extend(self.checksum) # AB CD FF FF (or 00 00)
         out.extend(PART_DEFINITION) # 00 00 00 01
         out.extend(self.part_id.to_bytes(4, 'little')) # ID 00 00 00
         out.extend(PART_FOOTER_MAGIC) # 04 00 00 00 01 00 00 00
@@ -46,15 +45,14 @@ class PartRef:
 
 @dataclass
 class Partial:
-    checksum: bytes
+    checksum: bytearray
     weapon_id: int
     part_count: int
     part_refs: List[PartRef]
 
     def to_bytes(self) -> bytearray:
         out = bytearray()
-        out.extend(self.checksum)
-        out.extend(ff_padding(2))
+        out.extend(self.checksum) # AB CD FF FF (or 00 00)
         out.extend(PARTIAL_DEFINITION)
         out.extend(self.weapon_id.to_bytes(4, 'little'))
         out.extend(PARTIAL_MAGIC)
