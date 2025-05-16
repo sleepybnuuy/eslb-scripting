@@ -31,4 +31,20 @@ for each part of a partial (listed in LIFO order),
 edits to the base eslb file, e.g. affected weapon IDs or part IDs, without touching any checksums, offsets, or count fields load successfully thru textools. making an ESLB that adds or removes any weapons' skeletons requires, at minimum, edits to the header offsets plus part & partial checksums. xiv does not seem keen to accept arbitrary checksums (changing even one from the base file makes it fail to load), and a couple formulas seem to roughly derive their values:
 - part checksum = 65536 - [bytes til EOF] + 34
 - weapon checksum = 65536 - [bytes til EOF] + 122
+
 these calculations work for **most** entries in the vanilla file, but inclusions of type B parts and unexpected headers throw off a few results. new checksums derived from this scheme don't currently seem to get us loading either.
+
+## appending to file
+adding new weapons _onto_ the vanilla file works like a charm - with the correct formatting and the inclusion of a header offset, the newly added weapon will call for a partial sklb when drawn ingame. 
+
+![image](https://github.com/user-attachments/assets/5233f1f3-e5fb-4b38-862c-160668599049)
+
+the above block has:
+- a weapon checksum of 122, derived from the byte distance to the last weapon checksum (checksum2 = checksum1 + distance)
+- a weapon ID of 1735
+- a part checksum of 58, derived from previous part's checksum
+- a part ID of 1
+
+when we equip w1735b0001, reslogger confirms that xiv looked for a skeleton in its parts folder, which in vanilla does not exist. other entries from the file also load w/o issue.
+
+![image](https://github.com/user-attachments/assets/f8dd9ae4-0eb7-414a-b09e-a6ef15653816)
