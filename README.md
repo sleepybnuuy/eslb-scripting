@@ -26,3 +26,9 @@ for each part of a partial (listed in LIFO order),
     - may indicate an additional set of trailing longwords, terminating with `0A 00 00 00`?
 
 ![eslb_data](https://github.com/user-attachments/assets/df50c9ad-1ae4-4437-85ff-02b037c5a0ad)
+
+## checksums
+edits to the base eslb file, e.g. affected weapon IDs or part IDs, without touching any checksums, offsets, or count fields load successfully thru textools. making an ESLB that adds or removes any weapons' skeletons requires, at minimum, edits to the header offsets plus part & partial checksums. xiv does not seem keen to accept arbitrary checksums (changing even one from the base file makes it fail to load), and a couple formulas seem to roughly derive their values:
+- part checksum = 65536 - [bytes til EOF] + 34
+- weapon checksum = 65536 - [bytes til EOF] + 122
+these calculations work for **most** entries in the vanilla file, but inclusions of type B parts and unexpected headers throw off a few results. new checksums derived from this scheme don't currently seem to get us loading either.
