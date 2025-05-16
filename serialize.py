@@ -27,7 +27,6 @@ EE FE = 65262 => 274
     index = position in weapon list
     weapons = full weapon list
     '''
-    seq_pos = len(inputs) - index
     return 65536 - sum([weapon_size(len(wep[1])) for wep in inputs[:index+1]]) + 122
 
 def part_key(part_index, weapon_index, inputs) -> int:

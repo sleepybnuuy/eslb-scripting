@@ -69,7 +69,7 @@ def partial_from_offset(offset, m):
 
     if len(complete_refs) != part_count:
         print(f'error: parsed {len(complete_refs)} parts, expected {part_count}')
-    return Partial(checksum, weapon_id, part_count, complete_refs)
+    return Partial(checksum, weapon_id, len(complete_refs), complete_refs)
 
 def part_from_offset(offset, m):
     m.seek(m.tell() + offset - 4)
@@ -102,10 +102,10 @@ def printout_eslb(data: EslbData, path: str):
     return
 
 def main():
-    data = deserialize_eslb('data/extra_weapon.eslb')
+    data = deserialize_eslb('data/COMPILED_extra_weapon.eslb')
     inputs = data.to_inputs()
     compiled_eslb = serialize_eslb(inputs)
-    printout_eslb(compiled_eslb, 'data/COMPILED_extra_weapon.eslb')
+    # printout_eslb(compiled_eslb, 'data/COMPILED_extra_weapon.eslb')
     print('done')
 
 main()
