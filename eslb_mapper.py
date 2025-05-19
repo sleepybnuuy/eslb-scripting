@@ -101,11 +101,46 @@ def printout_eslb(data: EslbData, path: str):
         f.close()
     return
 
+def append_eslb(inputs, in_path: str, out_path: str):
+    with open(in_path,'r') as f:
+        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as m:
+            base_header = m.read(28)
+            base_weapon_count = int.from_bytes(m.read(4), byteorder='little')
+            base_offsets = m.read(4 * base_weapon_count)
+            base = m.read()
+
+    initial_weapon_offset = int.from_bytes(base_offsets[:4], byteorder='little')
+    append_offsets, append_weapons = serialize_appends(inputs, initial_weapon_offset)
+
+    combined_weapon_count = base_weapon_count + len(inputs)
+    combined_weapon_bytes = combined_weapon_count.to_bytes(4, 'little')
+    with open(out_path,'wb') as f:
+        f.truncate(sum([len(i) for i in [base_header, combined_weapon_bytes, append_offsets, base_offsets, base, append_weapons]]))
+        f.write(base_header) # header copied from base
+        f.write(combined_weapon_bytes) # combined weapon count
+        f.write(append_offsets) # append offsets
+        f.write(base_offsets) # base offsets
+        f.write(base) # base file contents
+        f.write(append_weapons) # append contents
+        f.flush()
+        f.close()
+
+    return
+
 def main():
-    data = deserialize_eslb('data/COMPILED_extra_weapon.eslb')
-    inputs = data.to_inputs()
-    compiled_eslb = serialize_eslb(inputs)
+    # data = deserialize_eslb('data/extra_weapon.eslb')
+    # inputs = data.to_inputs()
+    # compiled_eslb = serialize_eslb(inputs)
     # printout_eslb(compiled_eslb, 'data/COMPILED_extra_weapon.eslb')
+
+    # fetch existing weapons and parts, append will calculate new headers so we dgaf about those
+    # data = deserialize_eslb('data/extra_weapon.eslb')
+    # inputs = data.to_inputs()
+
+    # test inputting w1735b0001 to diff with w1735-69.eslb
+    inputs = [(1735, [1])]
+    append_eslb(inputs, 'data/extra_weapon.eslb', 'data/APPENDED_extra_weapon.eslb')
+
     print('done')
 
 main()

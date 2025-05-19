@@ -58,6 +58,37 @@ def pack_checksum(value: int) -> bytearray:
         packed.extend(ff_padding(2))
     return packed
 
+def append_weapon_checksum(weapon_index, inputs) -> bytearray:
+    '''
+    all appended weapon checksums should be the base weapon checksum plus their relative byte distance from it
+    '''
+    base_weapon_check = int.from_bytes(LAST_WEAPON_CHECKSUM, 'little')
+    distance = sum([weapon_size(len(wep[1]) for wep in inputs[:weapon_index])])
+    packed = bytearray(struct.pack("<H", base_weapon_check+distance))
+    packed.extend(zero_padding(2))
+    return packed
+
+def append_part_checksum(part_index, weapon_index, inputs) -> bytearray:
+    '''
+    all appended part checksums should be the base part checksum plus their relative byte distance from it
+    distance = preceding weapons size + weapon header & part offsets (20 + 4*all parts) + preceding parts size (24*# preceding parts)
+    '''
+    base_part_check = int.from_bytes(LAST_PART_CHECKSUM, 'little')
+    distance = sum([weapon_size(len(wep[1]) for wep in inputs[:weapon_index])]) + 20 + (4 * len(inputs[weapon_index[1]])) + (24 * part_index)
+    packed = bytearray(struct.pack("<H", base_part_check+distance))
+    packed.extend(zero_padding(2))
+    return packed
+
+def append_weapon_offset(index, inputs, initial_offset) -> int:
+    '''
+    when appending weapon offsets, each should equal the original base offset,
+    + (4*# following weapons (self included))
+    + weapon size of following weapons (self excluded)
+    '''
+    offsets_distance = 4 * (len(inputs) - index)
+    weapons_distance = sum([weapon_size(len(wep[1])) for wep in inputs[index+1:]])
+    return initial_offset + offsets_distance + weapons_distance
+
 
 def serialize_eslb(inputs: List[tuple[int, List[int]]]):
     '''
@@ -102,3 +133,45 @@ def serialize_eslb(inputs: List[tuple[int, List[int]]]):
         partial_count=len(inputs),
         partial_refs=weapon_refs
     )
+
+def serialize_appends(inputs: List[tuple[int, List[int]]], initial_weapon_offset: int) -> tuple[bytearray, bytearray]:
+    '''
+    given an inputs blob, output a bytes blob of header offests & bytes blob of weapons
+    '''
+    inputs.sort(key=lambda x: x[0])
+    for w,p in inputs:
+        p = sorted(p)
+
+    weapon_refs = []
+    for i, (weapon, parts) in enumerate(inputs):
+        part_refs = []
+        for i2, part_id in enumerate(parts):
+            part_checksum = append_part_checksum(i2, i, inputs)
+            part_refs.append(PartRef(
+                offset=part_ref_offset(i2, len(parts)),
+                part=Part(
+                    checksum=part_checksum,
+                    part_id=part_id,
+                    part_type=PartType.A,
+                )
+            ))
+
+        weapon_checksum = append_weapon_checksum(i, inputs)
+        weapon_refs.append(PartialRef(
+            offset=append_weapon_offset(i, inputs, initial_weapon_offset),
+            partial=Partial(
+                checksum=weapon_checksum,
+                weapon_id=weapon,
+                part_count=len(part_refs),
+                part_refs=part_refs,
+            )
+        ))
+
+    append_offsets = bytearray()
+    append_weapons = bytearray()
+    for ref in weapon_refs:
+        append_offsets.extend(ref.to_bytes())
+    for ref in reversed(weapon_refs):
+        append_weapons.extend(ref.partial.to_bytes())
+
+    return append_offsets, append_weapons
