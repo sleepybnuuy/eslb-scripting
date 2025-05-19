@@ -3,6 +3,7 @@ from structs import *
 from serialize import *
 
 def deserialize_eslb(path: str):
+    print(f'READING FROM BASE')
     with open(path,'r') as f:
         with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as m:
             header = m.read(28)
@@ -114,6 +115,7 @@ def append_eslb(inputs, in_path: str, out_path: str):
 
     combined_weapon_count = base_weapon_count + len(inputs)
     combined_weapon_bytes = combined_weapon_count.to_bytes(4, 'little')
+    print(f'WRITING TO OUTFILE')
     with open(out_path,'wb') as f:
         f.truncate(sum([len(i) for i in [base_header, combined_weapon_bytes, append_offsets, base_offsets, base, append_weapons]]))
         f.write(base_header) # header copied from base
@@ -132,13 +134,14 @@ def main():
     data = deserialize_eslb('data/extra_weapon.eslb')
     input_dict = data.to_inputs()
 
-    # test adding w1735b0001 to append blob
+    # demo adding w1735b0001 to append blob
     arbitrary_additions = {
         1735: [1],
     }
     for w in arbitrary_additions.keys():
         for p in arbitrary_additions[w]:
             input_dict[w].add(p)
+    print(f'appending onto base file: {input_dict}')
 
     append_eslb(input_dict, 'data/extra_weapon.eslb', 'data/APPENDED_extra_weapon.eslb')
     print('done')
