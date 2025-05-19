@@ -48,3 +48,10 @@ the above block has:
 when we equip w1735b0001, reslogger confirms that xiv looked for a skeleton in its parts folder, which in vanilla does not exist. other entries from the file also load w/o issue.
 
 ![image](https://github.com/user-attachments/assets/f8dd9ae4-0eb7-414a-b09e-a6ef15653816)
+
+## issues/questions
+
+1. parts added to redefined/vanilla-present weapons call both a phyb and sklb - new weapons added only call an sklb?
+2. consequences of redefining type-B weapon parts? can the type-B footers be re-added w/o parsing error?
+3. what formatting is needed to author a fully new eslb, not just appending / duping over the existing?
+4. does the ESLB resource handler need to be added to clientstructs? what other infra needs to be in place to support eslb metadata?
