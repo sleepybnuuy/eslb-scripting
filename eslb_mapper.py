@@ -128,19 +128,19 @@ def append_eslb(inputs, in_path: str, out_path: str):
     return
 
 def main():
-    # data = deserialize_eslb('data/extra_weapon.eslb')
-    # inputs = data.to_inputs()
-    # compiled_eslb = serialize_eslb(inputs)
-    # printout_eslb(compiled_eslb, 'data/COMPILED_extra_weapon.eslb')
-
     # fetch existing weapons and parts, append will calculate new headers so we dgaf about those
-    # data = deserialize_eslb('data/extra_weapon.eslb')
-    # inputs = data.to_inputs()
+    data = deserialize_eslb('data/extra_weapon.eslb')
+    input_dict = data.to_inputs()
 
-    # test inputting w1735b0001 AND w2001b0061to diff with w1735-plus-w2001-b61.eslb
-    inputs = [(1735, [1,2]), (2001, [61])]
-    append_eslb(inputs, 'data/extra_weapon.eslb', 'data/APPENDED_extra_weapon.eslb')
+    # test adding w1735b0001 to append blob
+    arbitrary_additions = {
+        1735: [1],
+    }
+    for w in arbitrary_additions.keys():
+        for p in arbitrary_additions[w]:
+            input_dict[w].add(p)
 
+    append_eslb(input_dict, 'data/extra_weapon.eslb', 'data/APPENDED_extra_weapon.eslb')
     print('done')
 
 main()

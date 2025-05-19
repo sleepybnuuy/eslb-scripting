@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from collections import defaultdict
 from typing import List
 from enum import Enum
 from magic import *
@@ -91,8 +92,11 @@ class EslbData:
 
         return out
 
-    def to_inputs(self) -> List[tuple[int, List[int]]]:
-        return [(partial_ref.partial.weapon_id, [part_ref.part.part_id for part_ref in partial_ref.partial.part_refs]) for partial_ref in self.partial_refs]
+    def to_inputs(self) -> dict:
+        inputs = defaultdict(set)
+        for partial_ref in self.partial_refs:
+            inputs[partial_ref.partial.weapon_id] = set([part_ref.part.part_id for part_ref in partial_ref.partial.part_refs])
+        return inputs
 
 def part_has_valid_definition(definition):
     return definition == PART_DEFINITION

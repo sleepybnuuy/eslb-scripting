@@ -123,7 +123,7 @@ def serialize_eslb(inputs: List[tuple[int, List[int]]]):
 
         check_value = weapon_key(i, inputs)
         weapon_refs.append(PartialRef(
-            offset=weapon_ref_offset(i, len(inputs), inputs[i+1:]),
+            offset=weapon_ref_offset(i, len(inputs), list(reversed(inputs))[i+1:]),
             partial=Partial(
                 checksum=pack_checksum(check_value),
                 weapon_id=weapon,
@@ -137,10 +137,14 @@ def serialize_eslb(inputs: List[tuple[int, List[int]]]):
         partial_refs=weapon_refs
     )
 
-def serialize_appends(inputs: List[tuple[int, List[int]]], initial_weapon_offset: int) -> tuple[bytearray, bytearray]:
+def serialize_appends(inputs_dict: dict, initial_weapon_offset: int) -> tuple[bytearray, bytearray]:
     '''
     given an inputs blob, output a bytes blob of header offests & bytes blob of weapons
     '''
+    inputs = []
+    for k,v in inputs_dict.items():
+        inputs.append((k, list(v)))
+
     inputs.sort(key=lambda x: x[0])
     for w,p in inputs:
         p = sorted(p)
