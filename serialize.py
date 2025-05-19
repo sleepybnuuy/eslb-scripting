@@ -60,34 +60,37 @@ def pack_checksum(value: int) -> bytearray:
 
 def append_weapon_checksum(weapon_index, inputs) -> bytearray:
     '''
-    all appended weapon checksums should be the base weapon checksum plus their relative byte distance from it
+    all appended weapon checksums should be the base weapon checksum,
+    + remaining file length,
+    + plus their relative byte distance
     '''
     base_weapon_check = int.from_bytes(LAST_WEAPON_CHECKSUM, 'little')
-    distance = sum([weapon_size(len(wep[1]) for wep in inputs[:weapon_index])])
-    packed = bytearray(struct.pack("<H", base_weapon_check+distance))
+    distance = sum([weapon_size(len(wep[1])) for wep in inputs[:weapon_index]])
+    packed = bytearray(struct.pack("<H", base_weapon_check+REMAINING_FILE_LENGTH_FROM_WEAPON+distance))
     packed.extend(zero_padding(2))
     return packed
 
 def append_part_checksum(part_index, weapon_index, inputs) -> bytearray:
     '''
-    all appended part checksums should be the base part checksum plus their relative byte distance from it
+    all appended part checksums should be the base part checksum + remaining file length plus their relative byte distance from it
     distance = preceding weapons size + weapon header & part offsets (20 + 4*all parts) + preceding parts size (24*# preceding parts)
     '''
     base_part_check = int.from_bytes(LAST_PART_CHECKSUM, 'little')
-    distance = sum([weapon_size(len(wep[1]) for wep in inputs[:weapon_index])]) + 20 + (4 * len(inputs[weapon_index[1]])) + (24 * part_index)
-    packed = bytearray(struct.pack("<H", base_part_check+distance))
+    distance = sum([weapon_size(len(wep[1])) for wep in inputs[:weapon_index]]) + 20 + (4 * len(inputs[weapon_index][1])) + (24 * part_index)
+    packed = bytearray(struct.pack("<H", base_part_check+REMAINING_FILE_LENGTH_FROM_PART+distance))
     packed.extend(zero_padding(2))
     return packed
 
 def append_weapon_offset(index, inputs, initial_offset) -> int:
     '''
     when appending weapon offsets, each should equal the original base offset,
+    + size of final base weapon
     + (4*# following weapons (self included))
     + weapon size of following weapons (self excluded)
     '''
     offsets_distance = 4 * (len(inputs) - index)
     weapons_distance = sum([weapon_size(len(wep[1])) for wep in inputs[index+1:]])
-    return initial_offset + offsets_distance + weapons_distance
+    return initial_offset + REMAINING_FILE_LENGTH_FROM_WEAPON + offsets_distance + weapons_distance
 
 
 def serialize_eslb(inputs: List[tuple[int, List[int]]]):

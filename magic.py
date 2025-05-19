@@ -8,7 +8,9 @@ PARTIAL_MAGIC = b'\x04\x00\x00\x00'
 
 # should equal the final entries from vanilla file of weapon and part
 LAST_WEAPON_CHECKSUM = b'\x0A\x00'
+REMAINING_FILE_LENGTH_FROM_WEAPON = 112
 LAST_PART_CHECKSUM = b'\x0A\x00'
+REMAINING_FILE_LENGTH_FROM_PART = 24
 
 HEADER_MAGIC = bytes([
     0x14, 0x00, 0x00, 0x00, 0x45, 0x53, 0x4C, 0x42, 0x00, 0x00, 0x0A, 0x00, 0x08, 0x00, 0x00, 0x00, 
