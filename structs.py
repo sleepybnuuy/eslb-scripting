@@ -59,7 +59,7 @@ class Partial:
         out.extend(len(self.part_refs).to_bytes(4, 'little')) # using actual length, not part_count!
         for ref in self.part_refs:
             out.extend(ref.to_bytes())
-        for ref in reversed(self.part_refs):
+        for ref in self.part_refs:
             out.extend(ref.part.to_bytes())
 
         return out

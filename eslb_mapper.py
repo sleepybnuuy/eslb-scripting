@@ -138,7 +138,7 @@ def main():
     # inputs = data.to_inputs()
 
     # test inputting w1735b0001 AND w2001b0061to diff with w1735-plus-w2001-b61.eslb
-    inputs = [(1735, [1]), (2001, [61])]
+    inputs = [(1735, [1,2])]
     append_eslb(inputs, 'data/extra_weapon.eslb', 'data/APPENDED_extra_weapon.eslb')
 
     print('done')
