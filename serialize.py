@@ -161,7 +161,7 @@ def serialize_appends(inputs: List[tuple[int, List[int]]], initial_weapon_offset
 
         weapon_checksum = append_weapon_checksum(i, inputs)
         weapon_refs.append(PartialRef(
-            offset=append_weapon_offset(i, inputs, initial_weapon_offset),
+            offset=append_weapon_offset(i, list(reversed(inputs)), initial_weapon_offset),
             partial=Partial(
                 checksum=weapon_checksum,
                 weapon_id=weapon,
