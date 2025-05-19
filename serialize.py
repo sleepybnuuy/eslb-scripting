@@ -174,7 +174,8 @@ def serialize_appends(inputs: List[tuple[int, List[int]]], initial_weapon_offset
     append_weapons = bytearray()
     for ref in weapon_refs:
         append_offsets.extend(ref.to_bytes())
-    for ref in reversed(weapon_refs):
         append_weapons.extend(ref.partial.to_bytes())
+    # for ref in reversed(weapon_refs):
+        # append_weapons.extend(ref.partial.to_bytes())
 
     return append_offsets, append_weapons
